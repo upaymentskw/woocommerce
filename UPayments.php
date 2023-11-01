@@ -54,49 +54,8 @@ function woocommerce_upayments_init()
             $this->api_key = $this->get_option("api_key");
             $this->is_order_complete = $this->get_option('is_order_complete');
             $this->from_plugin_enabled = false;
-            $this->apple_pay_available = false;
+            $this->apple_pay_available = true;
 
-            ?>
-
-            <script>
-                justEat = {
-                applePay: {
-                    supportedByDevice: function () {
-                        return "ApplePaySession" in window;
-                    },
-                    getMerchantIdentifier: function () {
-                        return "merchant.com.upayments.ustore";
-                    }
-                }
-            };
-                
-            jQuery(function ($) {
-                // Get the merchant identifier from the page meta tags.
-                var merchantIdentifier = justEat.applePay.getMerchantIdentifier();
-                if (merchantIdentifier && justEat.applePay.supportedByDevice()) {        
-                    // Determine whether to display the Apple Pay button. See this link for details
-                    // on the two different approaches: https://developer.apple.com/documentation/applepayjs/checking_if_apple_pay_is_available
-                    if (ApplePaySession.canMakePayments() === true) {            
-                   <?php  $this->apple_pay_available = true; ?>
-                    }else{
-                        ApplePaySession.canMakePaymentsWithActiveCard(merchantIdentifier).then(function (canMakePayments) {
-                            if (canMakePayments === true) {
-                                <?php   $this->apple_pay_available = true; ?>
-                            } else {
-                                if($(".apple-pay-tr").length > 0)
-                                    console.log('apple not available');
-                            }
-                        });
-                    }
-                }else{
-                    if($(".apple-pay-tr").length > 0)
-                        $(".apple-pay-tr").remove();
-                        console.log('apple not available');
-                
-                } 
-            });
-            </script>  
-            <?php
         
             // Load the settings.
             $this->init_form_fields();
