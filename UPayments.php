@@ -1228,6 +1228,8 @@ function woocommerce_upayments_init()
                 ));
                 
                 $response = curl_exec($curl);
+                $this->log(__("Check payment methods:", $this->domain));
+                $this->log($response);
                 if ($response)
                 {
                     $result = json_decode($response, true);
