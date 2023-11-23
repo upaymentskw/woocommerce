@@ -884,7 +884,9 @@ function woocommerce_upayments_init()
             $customer_unq_token = null;
             $credit_card_token = null;
             $isSaveCard = false;
-            $customer_unq_token = $this->getCustomerUniqueToken($order_data["billing"]["phone"]);
+            $phone = str_replace(' ', '', $order_data["billing"]["phone"]); // Replaces all spaces with hyphens.
+            $phone = preg_replace('/[^A-Za-z0-9\-]/','',$phone);
+            $customer_unq_token = $this->getCustomerUniqueToken($phone);
             
             $params = json_encode([
                 "returnUrl" => $success_url, 
@@ -908,7 +910,7 @@ function woocommerce_upayments_init()
                             "uniqueId" => $customer_unq_token, 
                             "name" => $order_data["billing"]["first_name"] . " " . $order_data["billing"]["last_name"], 
                             "email" => $order_data["billing"]["email"], 
-                            "mobile" => $order_data["billing"]["phone"], 
+                            "mobile" => $phone, 
                             ], 
                 "plugin" => [
                             "src" => "woocommerce", 
