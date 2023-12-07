@@ -2,7 +2,7 @@
 /*
 Plugin Name: UPayments
 Description: UPayments Plugin allows merchants to accept KNET, Cards, Samsung Pay, Apple Pay, Google Pay Payments.
-Version: 2.0.4
+Version: 2.0.5
 Requires at least: 4.0
 WC requires at least: 2.4
 PHP Requires  at least: 5.5
@@ -922,6 +922,7 @@ function woocommerce_upayments_init()
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_USERAGENT, $this->getUserAgent());
             curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer " . $this->api_key, "Content-Type: application/json", ]);
 
             $response = curl_exec($ch);
@@ -1076,6 +1077,14 @@ function woocommerce_upayments_init()
             }
             return $url;
         }
+
+        public function getUserAgent(){
+            $userAgent = 'UpaymentsWoocommercePlugin/2.0.5';
+            if ($this->getMode()) {
+                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.0.5';
+            }
+            return $userAgent;
+        }
         
         public function getCurrencyCode($code)
         {
@@ -1107,10 +1116,8 @@ function woocommerce_upayments_init()
             {
                 $token = $phone;
                 $params = json_encode(["customerUniqueToken" => $token, ]);
-
                 $curl = curl_init();
-
-                curl_setopt_array($curl, [CURLOPT_URL => $this->getAPIUrlForCreateToken() , CURLOPT_RETURNTRANSFER => true, CURLOPT_ENCODING => "", CURLOPT_MAXREDIRS => 10, CURLOPT_TIMEOUT => 0, CURLOPT_FOLLOWLOCATION => true, CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1, CURLOPT_CUSTOMREQUEST => "POST", CURLOPT_POSTFIELDS => $params, CURLOPT_HTTPHEADER => ["Accept: application/json", "Content-Type: application/json", "Authorization: Bearer " . $this->api_key, ], ]);
+                curl_setopt_array($curl, [CURLOPT_URL => $this->getAPIUrlForCreateToken() , CURLOPT_RETURNTRANSFER => true, CURLOPT_USERAGENT => $this->getUserAgent(), CURLOPT_ENCODING => "", CURLOPT_MAXREDIRS => 10, CURLOPT_TIMEOUT => 0, CURLOPT_FOLLOWLOCATION => true, CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1, CURLOPT_CUSTOMREQUEST => "POST", CURLOPT_POSTFIELDS => $params, CURLOPT_HTTPHEADER => ["Accept: application/json", "Content-Type: application/json", "Authorization: Bearer " . $this->api_key, ], ]);
 
                 $response = curl_exec($curl);
                 if ($response)
@@ -1150,6 +1157,7 @@ function woocommerce_upayments_init()
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => 'GET',
+                CURLOPT_USERAGENT => $this->getUserAgent(),
                 CURLOPT_HTTPHEADER => array(
                     'Accept: application/json',
                     'Content-Type: application/json',
@@ -1298,7 +1306,3 @@ function enable_upayments_gateway($available_gateways)
 
     return $available_gateways;
 }
-
-
-
-
