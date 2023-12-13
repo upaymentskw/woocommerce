@@ -2,7 +2,7 @@
 /*
 Plugin Name: UPayments
 Description: UPayments Plugin allows merchants to accept KNET, Cards, Samsung Pay, Apple Pay, Google Pay Payments.
-Version: 2.0.5
+Version: 2.0.6
 Requires at least: 4.0
 WC requires at least: 2.4
 PHP Requires  at least: 5.5
@@ -1079,9 +1079,9 @@ function woocommerce_upayments_init()
         }
 
         public function getUserAgent(){
-            $userAgent = 'UpaymentsWoocommercePlugin/2.0.5';
+            $userAgent = 'UpaymentsWoocommercePlugin/2.0.6';
             if ($this->getMode()) {
-                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.0.5';
+                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.0.6';
             }
             return $userAgent;
         }
@@ -1214,7 +1214,6 @@ function woocommerce_upayments_init()
         function apple_pay_available() {
             $apple_pay_available = false;
             ?>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
                 <script>
                     justEat = {
                     applePay: {
