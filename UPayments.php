@@ -2,7 +2,7 @@
 /*
 Plugin Name: UPayments
 Description: UPayments Plugin allows merchants to accept KNET, Cards, Samsung Pay, Apple Pay, Google Pay Payments.
-Version: 2.0.6
+Version: 2.1.0
 Requires at least: 4.0
 WC requires at least: 2.4
 PHP Requires  at least: 5.5
@@ -45,7 +45,8 @@ function woocommerce_upayments_init()
             $this->method_description = __("UPayments Plugin allows merchants to accept KNET, Cards, Samsung Pay, Apple Pay, Google Pay Payments.", $this->domain);
 
             // Define user set variables
-            $this->title = $this->get_option("title");
+           // $this->title = $this->get_option("title");
+            $this->title = '';
             $this->description = $this->get_option("description");
             $this->debug = $this->get_option("debug");
             $this->api_key = $this->get_option("api_key");
@@ -66,10 +67,23 @@ function woocommerce_upayments_init()
             add_filter("woocommerce_gateway_icon", [$this, "custom_payment_gateway_icons"], 10, 2);
             add_action("woocommerce_admin_order_data_after_order_details", [$this, "admin_order_details"], 10, 3);
             add_action("admin_footer", [$this, "UPayments_admin_footer"], 10, 3);
-           
+            add_action('wp_enqueue_scripts', array($this,'enqueue_my_plugin_styles'));
+            add_action('wp_enqueue_scripts', array($this, 'enqueue_custom_checkout_script'));
+        
+        }
+        function enqueue_my_plugin_styles() {
+           // Enqueue Google Fonts
+            wp_enqueue_style('google-fonts', 'https://fonts.googleapis.com/css2?family=Almarai&display=swap');
+            wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
         }
 
-        
+        function enqueue_custom_checkout_script() {
+            if (is_checkout() && !is_wc_endpoint_url()) {
+                wp_enqueue_script('custom-checkout-script', plugin_dir_url(__FILE__) . 'assets/js/upay.js', array('jquery'), '1.0', true);
+                //wp_localize_script('my-script', 'my_ajax_obj', array('site_url' => site_url()));
+            }
+        }
+
         public function admin_order_details($order)
         {
             if ($order->get_payment_method() == $this->id)
@@ -121,35 +135,10 @@ function woocommerce_upayments_init()
             }
             if ($gateway_id == "upayments")
             {
-                $icons='';
-                $whitelabled = false;
-                $payment_data = $this->getPaymentIcons();
-                if($payment_data){
-                    $this->payment_data = $payment_data;
-                    $icons = $payment_data['payment'];
-                    $whitelabled = $payment_data['whitelabled'];
-                }
-                $icon = "";
-                if ($whitelabled == true)
-                {
-                    foreach ($icons as $key => $value)
-                    {
-                        $icon .= ' <img  style="height: 15px;" src="' . UPayments_PLUGIN_URL . "assets/images/" . esc_attr($key) . '.png" alt="' . esc_attr($value) . '"  title="' . esc_attr($value) . '" />';
-                
-                    }
-                }
-                else
-                {
-                    if($icons){
-                        foreach ($icons as $key => $value)
-                        {
-                            $icon .= ' <img style="height: 15px;" src="' . UPayments_PLUGIN_URL . "assets/images/" . esc_attr($key) . '.png" alt="' . esc_attr($value) . '"  title="' . esc_attr($value) . '" />';
-                        }
-                    }
-                }
+                $icon = '<span>Pay securely with <img src="' . UPayments_PLUGIN_URL . 'assets/images/upayment.png" alt="UPayemnts"  title="UPayments" style="height: 24px !important; padding-left:4px;"/></span>';
             }
-
             return $icon;
+           
         }
 
         /**
@@ -203,8 +192,45 @@ function woocommerce_upayments_init()
         function payment_fields()
         {
         ?>
-            <div class="form-row form-row-wide">
-                <p><?php echo $this->description; ?></p>
+       <div class="form-row form-row-wide">
+        <style>
+            .upay-payment-method {
+                border: 1px solid #D9D9D9;
+                border-radius: 5px;
+                padding: 8px;
+                display: flex;
+                align-items: center;
+                width: 100%;
+                background-color:#fff;
+                margin:8px;
+            }
+
+            .payment-method-label {
+                margin-left: 5px;
+                color:#98999A !important;
+                text-transform: none;
+                font-weight: normal !important;
+            }
+
+            .payment-method-price {
+                flex: 1 0 0;
+                text-align:right;
+                color:#1B1D21;
+            }
+
+            .payment-method-icon2 {
+                color: #1B1D21;
+                margin-left: 5px;
+            }
+
+            .upay-payment-method:hover {
+                background-color:#fff;
+                border: 1px solid #D9D9D9;
+                box-shadow: 0 4px 3px rgba(0, 0, 0, 0.07), 0 2px 2px rgba(0, 0, 0, 0.06) !important;
+            }
+        </style>
+         <!--p><?php echo $this->description; ?></p--> 
+                
                 <?php if (isset($_REQUEST["cancelled"]))
             { ?>
                 <script>
@@ -236,50 +262,65 @@ function woocommerce_upayments_init()
                 <?php
             } ?>
                 
-           <?php 
-           $icons = null;
-           $whitelabled = false;
-           if($this->payment_data == null ) {
-           $payment_data = $this->getPaymentIcons();
-           } else {
-            $payment_data = $this->payment_data;
-           }
-           if($payment_data){
-           $icons = $payment_data['payment'];
-           $whitelabled = $payment_data['whitelabled'];
-           }
-            if ($whitelabled == true)
-            {
+           
+            <?php
+           
+            $total = "0";
+            $total = WC()->cart->get_total('');
+            $language=get_locale();
+            $currency = get_woocommerce_currency_symbol();
+            if (strpos($language, 'en') === 0) {
+                $currency = get_woocommerce_currency();
+            }
+            $whitelabled = false;
+            $payment_data = $this->getPaymentIcons();
+            if($payment_data){
+                $this->payment_data = $payment_data;
+                $icons = $payment_data['payment'];
+                $whitelabled = $payment_data['whitelabled'];
+            }
+            if($whitelabled == true){
+            ?>
+                <div class="payment-buttons">
+                
+                <?php
+                foreach ($icons as $key => $value) {
                 ?>
-                    <ul style="list-style: none outside;">
-                        <p style="display: inline">Select Payment Type:</p>
-                       <?php foreach ($icons as $key => $value)
-                {
-                    if ($key != "both")
-                    {
-                        $icon = ' <img style="height: 13px;" src="' . UPayments_PLUGIN_URL . "assets/images/" . esc_attr($key) . '.png" alt="' . esc_attr($value) . '"  title="' . esc_attr($value) . '" />'; ?>
-                            <li>
-                                <span class="<?php echo esc_attr($key);?>-tr">
-                                <input id="upayment_payment_type_<?php echo esc_attr($key); ?>" type="radio" class="input-radio"
-                                       name="upayment_payment_type" value="<?php echo esc_attr($key); ?>"/>
-                                <label for="upayment_payment_type_<?php echo esc_attr($key); ?>"
-                                       style='display: inline-block; font-family: -apple-system,blinkmacsystemfont,"Helvetica Neue",helvetica,sans-serif;'>
-                                    <span class="upayment_payment_type_label_text"><?php echo esc_attr($value); ?></span>
-                                    <span class="upayment_payment_type_label_logo"><?php echo $icon; ?></span>
-                                </label>
-                                </span>
-                        
-                        <?php
-                    }
-                } ?>
-                </ul>
+                    <button type="button" onclick="submitUpayButton('<?php echo esc_attr($key);?>')" class="upay-payment-method" id="upay-button-<?php echo esc_attr($key);?>">
+                    <span class="payment-method-icon"><img src="<?php echo UPayments_PLUGIN_URL;?>assets/images/<?php echo esc_attr($key);?>.png" alt="<?php echo esc_attr($value);?>"  title="<?php echo esc_attr($value);?>"/></span>
+                    <span class="payment-method-label"><?php echo esc_attr($value);?></span>
+                    <span class="payment-method-price"><?php echo $total;?> <?php echo $currency;?></span>
+                    <span class="payment-method-icon2"><i class="fa fa-chevron-right"></i></span>
+                    </button>
+                    
+                <?php
+                }
+                ?>
+            
+                </div>
+            <?php
+            } else {
+                ?>
+                <div class="payment-buttons">
+                <button type="button" onclick="submitUpayButton('knet')" class="upay-payment-method">
+                    
+                <?php
+                foreach ($icons as $key => $value) {
+                ?>
+                    <span class="payment-method-icon" style="margin-right: 5px;" id="upay-button-<?php echo esc_attr($key);?>"><img src="<?php echo UPayments_PLUGIN_URL;?>assets/images/<?php echo esc_attr($key);?>.png" alt="<?php echo esc_attr($value);?>"  title="<?php echo esc_attr($value);?>"/></span>
+                    <?php
+                }
+                ?>
+                <span class="payment-method-price"><?php echo $total;?> <?php echo $currency;?></span>
+                <span class="payment-method-icon2"><i class="fa fa-chevron-right"></i></span>
+                </button>
+                </div>
             <?php
             }
             ?>
-            
+            <input id="upayment_payment_type" type="hidden" name="upayment_payment_type" value="upayments"/>
             </div>
-           
-            <?php
+        <?php   
         }
 
         public function add_order_item_totals($total_rows, $order, $tax_display)
@@ -815,7 +856,6 @@ function woocommerce_upayments_init()
             }
 
             $order = wc_get_order($order_id);
-
             $order_data = $order->get_data();
             $order_total = $order->get_total();
 
@@ -1015,20 +1055,6 @@ function woocommerce_upayments_init()
         public function UPayments_admin_footer()
         {
 
-            if (isset($_GET["page"]) && $_GET["page"] == "wc-settings" && isset($_GET["section"]) && $_GET["section"] == "upayments")
-            { ?>
-                
-               <script type="text/javascript">
-                jQuery(document).ready(function(){
-                    
-                });
-
-
-                
-                
-            </script>  
-            <?php
-            }
         }
 
         public function getSiteName()
@@ -1079,9 +1105,9 @@ function woocommerce_upayments_init()
         }
 
         public function getUserAgent(){
-            $userAgent = 'UpaymentsWoocommercePlugin/2.0.6';
+            $userAgent = 'UpaymentsWoocommercePlugin/2.0.5';
             if ($this->getMode()) {
-                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.0.6';
+                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.0.5';
             }
             return $userAgent;
         }
@@ -1194,67 +1220,21 @@ function woocommerce_upayments_init()
 
         public function getPaymentIcons()
         {
-            $apple_pay_available = $this->apple_pay_available();
             $data=$this->getUpayPaymentMethods();
             if($data['result'] != 'failure') {
             $payment_methods=$data['payButtons'];
             $whitelabled=$data['isWhiteLabel'];
             $methods=[];
             if($payment_methods['knet'] == 1){ $methods['payment']['knet'] = __('KNET', $this->domain);}
-            if($payment_methods['credit_card'] == 1){$methods['payment']['cc'] = __('Credit cards', $this->domain);}
+            if($payment_methods['credit_card'] == 1){$methods['payment']['cc'] = __('Credit Card', $this->domain);}
             if($payment_methods['samsung_pay'] == 1){$methods['payment']['samsung-pay'] = __('Samsung Pay', $this->domain); }
             if($payment_methods['google_pay'] == 1){$methods['payment']['google-pay'] = __('Google Pay', $this->domain);}
-            if($payment_methods['apple_pay'] == 1 && $apple_pay_available == true){$methods['payment']['apple-pay'] = __('Apple Pay', $this->domain);}
+            if($payment_methods['apple_pay'] == 1){$methods['payment']['apple-pay'] = __('Apple Pay', $this->domain);}
             $methods['whitelabled'] = $whitelabled;
             return $methods;
             }
             
         }
-
-        function apple_pay_available() {
-            $apple_pay_available = false;
-            ?>
-                <script>
-                    justEat = {
-                    applePay: {
-                        supportedByDevice: function () {
-                            return "ApplePaySession" in window;
-                        },
-                        getMerchantIdentifier: function () {
-                            return "merchant.com.upayments.ustore";
-                        }
-                    }
-                };
-                    
-                jQuery(function ($) {
-                    // Get the merchant identifier from the page meta tags.
-                    var merchantIdentifier = justEat.applePay.getMerchantIdentifier();
-                    if (merchantIdentifier && justEat.applePay.supportedByDevice()) {        
-                        // Determine whether to display the Apple Pay button. See this link for details
-                        // on the two different approaches: https://developer.apple.com/documentation/applepayjs/checking_if_apple_pay_is_available
-                        if (ApplePaySession.canMakePayments() === true) {            
-                        <?php  $apple_pay_available = true; ?>
-                        }else{
-                            ApplePaySession.canMakePaymentsWithActiveCard(merchantIdentifier).then(function (canMakePayments) {
-                                if (canMakePayments === true) {
-                                    <?php   $apple_pay_available = true; ?>
-                                } else {
-                                    if($(".apple-pay-tr").length > 0)
-                                        console.log('apple not available');
-                                }
-                            });
-                        }
-                    }else{
-                        if($(".apple-pay-tr").length > 0)
-                            $(".apple-pay-tr").remove();
-                            console.log('apple not available');
-                    
-                    } 
-                });
-                </script>  
-            <?php
-            return $apple_pay_available;
-            }
 
         public function log($content)
         {
