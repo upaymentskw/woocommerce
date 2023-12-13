@@ -202,7 +202,7 @@ function woocommerce_upayments_init()
                 align-items: center;
                 width: 100%;
                 background-color:#fff;
-                margin:8px;
+                margin: 8px 0px;
             }
 
             .payment-method-label {
