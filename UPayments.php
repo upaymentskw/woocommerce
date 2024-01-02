@@ -2,7 +2,7 @@
 /*
 Plugin Name: UPayments
 Description: UPayments Plugin allows merchants to accept KNET, Cards, Samsung Pay, Apple Pay, Google Pay Payments.
-Version: 2.1.0
+Version: 2.2.0
 Requires at least: 4.0
 WC requires at least: 2.4
 PHP Requires  at least: 5.5
@@ -228,6 +228,73 @@ function woocommerce_upayments_init()
                 border: 1px solid #D9D9D9;
                 box-shadow: 0 4px 3px rgba(0, 0, 0, 0.07), 0 2px 2px rgba(0, 0, 0, 0.06) !important;
             }
+
+            /* Toggle Button Credit Card */
+            .switch {
+                position: relative;
+                width: 45px;
+                height: 25px;
+                float: right;
+            }
+
+            .switch-border {
+                width: 100%;
+                background-color:#fff;
+                margin: -8px 0px 8px;
+                padding: 5px;
+            }
+
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                -webkit-transition: .4s;
+                transition: .4s;
+            }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 18px;
+                width: 18px;
+                bottom: 4px;
+                background-color: white;
+                -webkit-transition: .4s;
+                transition: .4s;
+            }
+
+            input:checked + .slider {
+                background-color: #2196F3;
+            }
+
+            input:focus + .slider {
+                box-shadow: 0 0 1px #2196F3;
+            }
+
+            input:checked + .slider:before {
+                -webkit-transform: translateX(26px);
+                -ms-transform: translateX(26px);
+                transform: translateX(26px);
+            }
+
+            /* Rounded sliders */
+            .slider.round {
+                border-radius: 34px;
+            }
+
+            .slider.round:before {
+                border-radius: 50%;
+            }
         </style>
          <!--p><?php echo $this->description; ?></p--> 
                 
@@ -284,6 +351,40 @@ function woocommerce_upayments_init()
                 <div class="payment-buttons">
                 
                 <?php
+
+                // Retrieve Saved Cards
+                $loggedInUser = $this->get_logged_in_user_phone_number();
+                if($loggedInUser['success']) {
+                    ?>
+                    <input id="save_card" type="hidden" name="save_card" value="1"/>
+                    <?php
+                    $savedCards = $this->getSavedCards($loggedInUser['phone']);
+                    if($savedCards && $savedCards['result'] == 'success') {
+                        $cardList = $savedCards['data'];
+                        ?>
+                        <span class="payment-method-label">Saved Cards</span>
+                        <?php
+                        foreach ($cardList as $cardkey => $cardValue) {
+                            ?>
+                                <button type="button" value="<?php echo $cardValue['token'];?>" onclick="submitSavedCard(this)" class="upay-payment-method" id="upay-button-cc">
+                                <span class="payment-method-icon"><img src="<?php echo UPayments_PLUGIN_URL;?>assets/images/cc.png" alt="<?php echo $cardValue['number'];?>"  title="<?php echo $cardValue['number'];?>"/></span>
+                                <span class="payment-method-label"><?php echo $cardValue['number'];?></span>
+                                <span class="payment-method-price"><?php echo $total;?> <?php echo $currency;?></span>
+                                <span class="payment-method-icon2"><i class="fa fa-chevron-right"></i></span>
+                                </button>
+
+                            <?php
+                        }
+                        ?>
+                        <span class="payment-method-label">Other Options</span>
+                        <?php
+                    }
+                } else {
+                    ?>
+                    <input id="save_card" type="hidden" name="save_card" value="0"/>
+                    <?php
+                }
+
                 foreach ($icons as $key => $value) {
                 ?>
                     <button type="button" onclick="submitUpayButton('<?php echo esc_attr($key);?>')" class="upay-payment-method" id="upay-button-<?php echo esc_attr($key);?>">
@@ -292,7 +393,30 @@ function woocommerce_upayments_init()
                     <span class="payment-method-price"><?php echo $total;?> <?php echo $currency;?></span>
                     <span class="payment-method-icon2"><i class="fa fa-chevron-right"></i></span>
                     </button>
-                    
+                    <?php
+                        if($key == 'cc') {
+                            ?>
+                                <label class="switch-border">
+                                    For faster and more secure checkout. Save your card details.
+                                    <label class="switch">
+                                    <?php
+                                        if($loggedInUser['success']) {
+                                            ?>
+                                            <input type="checkbox" id="chkSaveCard" onclick="toggleSaveCard(true);" checked>
+                                            <span class="slider round"></span>
+                                            <?php
+                                        } else {
+                                            ?>
+                                            <input type="checkbox" id="chkSaveCard" onclick="toggleSaveCard(false);">
+                                            <span class="slider round"></span>
+                                            <?php
+                                        }
+                                    ?>
+                                    </label>
+                                </label>
+                            <?php
+                        }
+                    ?>
                 <?php
                 }
                 ?>
@@ -319,8 +443,27 @@ function woocommerce_upayments_init()
             }
             ?>
             <input id="upayment_payment_type" type="hidden" name="upayment_payment_type" value="upayments"/>
+            <input id="card_token" type="hidden" name="card_token" value=""/>
             </div>
         <?php   
+        }
+
+        public function get_logged_in_user_phone_number() {
+            // Check if the user is logged in
+            if (is_user_logged_in()) {
+                // Get the current user ID
+                $user_id = get_current_user_id();
+
+                // Get the user's billing phone number
+                $billing_phone = get_user_meta($user_id)['billing_phone'][0];
+
+                if ($billing_phone) {
+                    $phone = str_replace(' ', '', $billing_phone); // Replaces all spaces with hyphens.
+                    $phone = preg_replace('/[^A-Za-z0-9\-]/','',$phone);
+                    return ['success' => true, 'phone' => $phone];
+                }
+            }
+            return ['success' => false];
         }
 
         public function add_order_item_totals($total_rows, $order, $tax_display)
@@ -882,6 +1025,8 @@ function woocommerce_upayments_init()
             }
 
             $src = "knet";
+            $cardToken = null;
+            $isSaveCard = false;
             if ($whitelabled == true)
             {
                 $whitelabled = true;
@@ -892,10 +1037,11 @@ function woocommerce_upayments_init()
                         $order->delete_meta_data("UPayments_Checkout_Selected");
                         $order->add_meta_data("UPayments_Checkout_Selected", $upayment_payment_type);
                     }
+                $cardToken = sanitize_text_field($_POST["card_token"]);
+                $isSaveCard = $src == 'cc' && sanitize_text_field($_POST["save_card"]) == 1 ? true : false;
             }
             $customer_unq_token = null;
-            $credit_card_token = null;
-            $isSaveCard = false;
+            $credit_card_token = $cardToken;
             $phone = str_replace(' ', '', $order_data["billing"]["phone"]); // Replaces all spaces with hyphens.
             $phone = preg_replace('/[^A-Za-z0-9\-]/','',$phone);
             $customer_unq_token = $this->getCustomerUniqueToken($phone);
@@ -1104,6 +1250,14 @@ function woocommerce_upayments_init()
             return $url;
         }
 
+        public function getAPIUrlForRetreiveCards() {
+            $url = "https://apiv2api.upayments.com/api/v1/retrieve-customer-cards";
+            if ($this->getMode()) {
+                $url = "https://sandboxapi.upayments.com/api/v1/retrieve-customer-cards";
+            }
+            return $url;
+        }
+
         public function getUserAgent(){
             $userAgent = 'UpaymentsWoocommercePlugin/2.0.5';
             if ($this->getMode()) {
@@ -1216,6 +1370,33 @@ function woocommerce_upayments_init()
                 }
             }
             return $payment_methods;
+        }
+
+        public function getSavedCards($phone)
+        {
+            $api_key =  $this->api_key;
+            $savedCards=null;
+            if (!empty($api_key))
+            {
+                $params = json_encode(["customerUniqueToken" => $phone]);
+                $curl = curl_init();
+                curl_setopt_array($curl, [CURLOPT_URL => $this->getAPIUrlForRetreiveCards() , CURLOPT_RETURNTRANSFER => true, CURLOPT_USERAGENT => $this->getUserAgent(), CURLOPT_ENCODING => "", CURLOPT_MAXREDIRS => 10, CURLOPT_TIMEOUT => 0, CURLOPT_FOLLOWLOCATION => true, CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1, CURLOPT_CUSTOMREQUEST => "POST", CURLOPT_POSTFIELDS => $params, CURLOPT_HTTPHEADER => ["Accept: application/json", "Content-Type: application/json", "Authorization: Bearer " . $this->api_key, ], ]);
+                $response = curl_exec($curl);
+                $this->log(__("Check saved cards:", $this->domain));
+                $this->log($response);
+                if ($response)
+                {
+                    $result = json_decode($response, true);
+                    if($result){
+                        if ($result && array_key_exists("status",$result) && $result["status"] == true)
+                        {
+                            $savedCards["data"] = $result['data']['customerCards'];
+                            $savedCards["result"] = 'success';
+                        }
+                    }
+                }
+            }
+            return $savedCards;
         }
 
         public function getPaymentIcons()
