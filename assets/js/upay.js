@@ -80,6 +80,24 @@ jQuery(function($) {
 function submitUpayButton(buttonValue) {
     jQuery('#upayment_payment_type').val(buttonValue);
     jQuery('form.checkout').submit();
-
 }
 
+function submitSavedCard(objButton) {
+    jQuery('#upayment_payment_type').val('cc');
+    jQuery('#card_token').val(objButton.value);
+    jQuery('form.checkout').submit();
+}
+
+function toggleSaveCard(loggedUser) {
+    if (loggedUser == false) {
+        document.getElementById("chkSaveCard").checked = false;
+        jQuery('#save_card').val('0');
+        alert("Please Login to use Save Card feature")
+    } else {
+        if (document.getElementById('chkSaveCard').checked) {
+            jQuery('#save_card').val('1');
+        } else {
+            jQuery('#save_card').val('0');
+        }
+    }
+}
