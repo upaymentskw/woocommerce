@@ -1105,9 +1105,9 @@ function woocommerce_upayments_init()
         }
 
         public function getUserAgent(){
-            $userAgent = 'UpaymentsWoocommercePlugin/2.0.5';
+            $userAgent = 'UpaymentsWoocommercePlugin/2.1.0';
             if ($this->getMode()) {
-                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.0.5';
+                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.1.0';
             }
             return $userAgent;
         }
