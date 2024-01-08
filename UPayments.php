@@ -2,7 +2,7 @@
 /*
 Plugin Name: UPayments
 Description: UPayments Plugin allows merchants to accept KNET, Cards, Samsung Pay, Apple Pay, Google Pay Payments.
-Version: 2.1.0
+Version: 2.1.1
 Requires at least: 4.0
 WC requires at least: 2.4
 PHP Requires  at least: 5.5
@@ -592,7 +592,7 @@ function woocommerce_upayments_init()
             {
                 $this->log("Ret Order Result set.");
                 $OrderID = sanitize_text_field($_GET["requested_order_id"]);
-                $UPayments_order_id = get_post_meta($order_id, "UPayments_order_id", true);
+                $UPayments_order_id = get_post_meta($order_id, "UPayments_order_id", true) ? get_post_meta($order_id, "UPayments_order_id", true) : $order->get_meta('UPayments_order_id');
                 $this->log("Ret Upayments Order Id Received: " . $UPayments_order_id);
                 if ($OrderID != $UPayments_order_id)
                 {
@@ -728,7 +728,7 @@ function woocommerce_upayments_init()
                 {
                     $this->log("Order Result set.");
                     $OrderID = sanitize_text_field($_REQUEST["requested_order_id"]);
-                    $UPayments_order_id = get_post_meta($order_id, "UPayments_order_id", true);
+                    $UPayments_order_id = get_post_meta($order_id, "UPayments_order_id", true) ? get_post_meta($order_id, "UPayments_order_id", true) : $order->get_meta('UPayments_order_id');
                     if ($OrderID != $UPayments_order_id)
                     {
                         $status_message = __("Order references does not match.", $this->domain);
@@ -898,7 +898,11 @@ function woocommerce_upayments_init()
             $isSaveCard = false;
             $phone = str_replace(' ', '', $order_data["billing"]["phone"]); // Replaces all spaces with hyphens.
             $phone = preg_replace('/[^A-Za-z0-9\-]/','',$phone);
-            $customer_unq_token = $this->getCustomerUniqueToken($phone);
+            $customer_unq_token = $phone;
+            if (substr($customer_unq_token, 0, 1) === '0') {
+                $customer_unq_token = '1' . substr($customer_unq_token, 1);
+            }
+            $customer_unq_token = $this->getCustomerUniqueToken($customer_unq_token);
             
             $params = json_encode([
                 "returnUrl" => $success_url, 
@@ -1105,9 +1109,9 @@ function woocommerce_upayments_init()
         }
 
         public function getUserAgent(){
-            $userAgent = 'UpaymentsWoocommercePlugin/2.0.5';
+            $userAgent = 'UpaymentsWoocommercePlugin/2.1.1';
             if ($this->getMode()) {
-                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.0.5';
+                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.1.1';
             }
             return $userAgent;
         }
