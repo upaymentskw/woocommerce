@@ -110,8 +110,8 @@ Supported currency codes are: KWD, SAR, USD, BHD, EUR, OMR, QAR, AED
 -IP whitelisting issue is resolved
 
 = 2.1.0 =
-- Design updates
+-Design updates
 
 = 2.2.0 =
-- Added saved card feature
+-Added saved card feature
 

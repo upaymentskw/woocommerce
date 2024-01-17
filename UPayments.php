@@ -460,7 +460,12 @@ function woocommerce_upayments_init()
                 if ($billing_phone) {
                     $phone = str_replace(' ', '', $billing_phone); // Replaces all spaces with hyphens.
                     $phone = preg_replace('/[^A-Za-z0-9\-]/','',$phone);
-                    return ['success' => true, 'phone' => $phone];
+                    if (substr($phone, 0, 1) === '0') {
+                        $phone = '1' . substr($phone, 1);
+                    }
+                    if($phone) {
+                        return ['success' => true, 'phone' => $phone];
+                    }
                 }
             }
             return ['success' => false];
@@ -735,7 +740,7 @@ function woocommerce_upayments_init()
             {
                 $this->log("Ret Order Result set.");
                 $OrderID = sanitize_text_field($_GET["requested_order_id"]);
-                $UPayments_order_id = get_post_meta($order_id, "UPayments_order_id", true);
+                $UPayments_order_id = get_post_meta($order_id, "UPayments_order_id", true)  ? get_post_meta($order_id, "UPayments_order_id", true) : $order->get_meta('UPayments_order_id');
                 $this->log("Ret Upayments Order Id Received: " . $UPayments_order_id);
                 if ($OrderID != $UPayments_order_id)
                 {
@@ -871,7 +876,7 @@ function woocommerce_upayments_init()
                 {
                     $this->log("Order Result set.");
                     $OrderID = sanitize_text_field($_REQUEST["requested_order_id"]);
-                    $UPayments_order_id = get_post_meta($order_id, "UPayments_order_id", true);
+                    $UPayments_order_id = get_post_meta($order_id, "UPayments_order_id", true)  ? get_post_meta($order_id, "UPayments_order_id", true) : $order->get_meta('UPayments_order_id');
                     if ($OrderID != $UPayments_order_id)
                     {
                         $status_message = __("Order references does not match.", $this->domain);
@@ -1044,7 +1049,11 @@ function woocommerce_upayments_init()
             $credit_card_token = $cardToken;
             $phone = str_replace(' ', '', $order_data["billing"]["phone"]); // Replaces all spaces with hyphens.
             $phone = preg_replace('/[^A-Za-z0-9\-]/','',$phone);
-            $customer_unq_token = $this->getCustomerUniqueToken($phone);
+            $customer_unq_token = $phone;
+            if (substr($customer_unq_token, 0, 1) === '0') {
+                $customer_unq_token = '1' . substr($customer_unq_token, 1);
+            }
+            $customer_unq_token = $this->getCustomerUniqueToken($customer_unq_token);
             
             $params = json_encode([
                 "returnUrl" => $success_url, 
@@ -1259,9 +1268,9 @@ function woocommerce_upayments_init()
         }
 
         public function getUserAgent(){
-            $userAgent = 'UpaymentsWoocommercePlugin/2.0.5';
+            $userAgent = 'UpaymentsWoocommercePlugin/2.2.0';
             if ($this->getMode()) {
-                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.0.5';
+                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.2.0';
             }
             return $userAgent;
         }
