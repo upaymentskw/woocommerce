@@ -66,7 +66,15 @@ function woocommerce_upayments_init()
             add_filter("woocommerce_gateway_icon", [$this, "custom_payment_gateway_icons"], 10, 2);
             add_action("woocommerce_admin_order_data_after_order_details", [$this, "admin_order_details"], 10, 3);
             add_action("admin_footer", [$this, "UPayments_admin_footer"], 10, 3);
+            add_action('wp_enqueue_scripts', array($this, 'enqueue_custom_checkout_script'));
            
+        }
+
+        function enqueue_custom_checkout_script() {
+            if (is_checkout() && !is_wc_endpoint_url()) {
+                wp_enqueue_script('custom-checkout-script', plugin_dir_url(__FILE__) . 'assets/js/upay.js', array('jquery'), '1.0', true);
+                //wp_localize_script('my-script', 'my_ajax_obj', array('site_url' => site_url()));
+            }
         }
 
         
@@ -259,7 +267,7 @@ function woocommerce_upayments_init()
                     {
                         $icon = ' <img style="height: 13px;" src="' . UPayments_PLUGIN_URL . "assets/images/" . esc_attr($key) . '.png" alt="' . esc_attr($value) . '"  title="' . esc_attr($value) . '" />'; ?>
                             <li>
-                                <span class="<?php echo esc_attr($key);?>-tr">
+                                <span class="<?php echo esc_attr($key);?>-upayments-button">
                                 <input id="upayment_payment_type_<?php echo esc_attr($key); ?>" type="radio" class="input-radio"
                                        name="upayment_payment_type" value="<?php echo esc_attr($key); ?>"/>
                                 <label for="upayment_payment_type_<?php echo esc_attr($key); ?>"
@@ -551,7 +559,7 @@ function woocommerce_upayments_init()
             {
                 $this->log("Ret Order Result set.");
                 $OrderID = sanitize_text_field($_GET["requested_order_id"]);
-                $UPayments_order_id = get_post_meta($order_id, "UPayments_order_id", true);
+                $UPayments_order_id = get_post_meta($order_id, "UPayments_order_id", true) ? get_post_meta($order_id, "UPayments_order_id", true) : $order->get_meta('UPayments_order_id');
                 $this->log("Ret Upayments Order Id Received: " . $UPayments_order_id);
                 if ($OrderID != $UPayments_order_id)
                 {
@@ -687,7 +695,7 @@ function woocommerce_upayments_init()
                 {
                     $this->log("Order Result set.");
                     $OrderID = sanitize_text_field($_REQUEST["requested_order_id"]);
-                    $UPayments_order_id = get_post_meta($order_id, "UPayments_order_id", true);
+                    $UPayments_order_id = get_post_meta($order_id, "UPayments_order_id", true) ? get_post_meta($order_id, "UPayments_order_id", true) : $order->get_meta('UPayments_order_id');
                     if ($OrderID != $UPayments_order_id)
                     {
                         $status_message = __("Order references does not match.", $this->domain);
@@ -858,7 +866,11 @@ function woocommerce_upayments_init()
             $isSaveCard = false;
             $phone = str_replace(' ', '', $order_data["billing"]["phone"]); // Replaces all spaces with hyphens.
             $phone = preg_replace('/[^A-Za-z0-9\-]/','',$phone);
-            $customer_unq_token = $this->getCustomerUniqueToken($phone);
+            $customer_unq_token = $phone;
+            if (substr($customer_unq_token, 0, 1) === '0') {
+                $customer_unq_token = '1' . substr($customer_unq_token, 1);
+            }
+            $customer_unq_token = $this->getCustomerUniqueToken($customer_unq_token);
             
             $params = json_encode([
                 "returnUrl" => $success_url, 
@@ -1015,20 +1027,6 @@ function woocommerce_upayments_init()
         public function UPayments_admin_footer()
         {
 
-            if (isset($_GET["page"]) && $_GET["page"] == "wc-settings" && isset($_GET["section"]) && $_GET["section"] == "upayments")
-            { ?>
-                
-               <script type="text/javascript">
-                jQuery(document).ready(function(){
-                    
-                });
-
-
-                
-                
-            </script>  
-            <?php
-            }
         }
 
         public function getSiteName()
@@ -1079,9 +1077,9 @@ function woocommerce_upayments_init()
         }
 
         public function getUserAgent(){
-            $userAgent = 'UpaymentsWoocommercePlugin/2.0.6';
+            $userAgent = 'UpaymentsWoocommercePlugin/2.0.5';
             if ($this->getMode()) {
-                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.0.6';
+                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.0.5';
             }
             return $userAgent;
         }
@@ -1194,7 +1192,6 @@ function woocommerce_upayments_init()
 
         public function getPaymentIcons()
         {
-            $apple_pay_available = $this->apple_pay_available();
             $data=$this->getUpayPaymentMethods();
             if($data['result'] != 'failure') {
             $payment_methods=$data['payButtons'];
@@ -1204,57 +1201,12 @@ function woocommerce_upayments_init()
             if($payment_methods['credit_card'] == 1){$methods['payment']['cc'] = __('Credit cards', $this->domain);}
             if($payment_methods['samsung_pay'] == 1){$methods['payment']['samsung-pay'] = __('Samsung Pay', $this->domain); }
             if($payment_methods['google_pay'] == 1){$methods['payment']['google-pay'] = __('Google Pay', $this->domain);}
-            if($payment_methods['apple_pay'] == 1 && $apple_pay_available == true){$methods['payment']['apple-pay'] = __('Apple Pay', $this->domain);}
+            if($payment_methods['apple_pay'] == 1){$methods['payment']['apple-pay'] = __('Apple Pay', $this->domain);}
             $methods['whitelabled'] = $whitelabled;
             return $methods;
             }
             
         }
-
-        function apple_pay_available() {
-            $apple_pay_available = false;
-            ?>
-                <script>
-                    justEat = {
-                    applePay: {
-                        supportedByDevice: function () {
-                            return "ApplePaySession" in window;
-                        },
-                        getMerchantIdentifier: function () {
-                            return "merchant.com.upayments.ustore";
-                        }
-                    }
-                };
-                    
-                jQuery(function ($) {
-                    // Get the merchant identifier from the page meta tags.
-                    var merchantIdentifier = justEat.applePay.getMerchantIdentifier();
-                    if (merchantIdentifier && justEat.applePay.supportedByDevice()) {        
-                        // Determine whether to display the Apple Pay button. See this link for details
-                        // on the two different approaches: https://developer.apple.com/documentation/applepayjs/checking_if_apple_pay_is_available
-                        if (ApplePaySession.canMakePayments() === true) {            
-                        <?php  $apple_pay_available = true; ?>
-                        }else{
-                            ApplePaySession.canMakePaymentsWithActiveCard(merchantIdentifier).then(function (canMakePayments) {
-                                if (canMakePayments === true) {
-                                    <?php   $apple_pay_available = true; ?>
-                                } else {
-                                    if($(".apple-pay-tr").length > 0)
-                                        console.log('apple not available');
-                                }
-                            });
-                        }
-                    }else{
-                        if($(".apple-pay-tr").length > 0)
-                            $(".apple-pay-tr").remove();
-                            console.log('apple not available');
-                    
-                    } 
-                });
-                </script>  
-            <?php
-            return $apple_pay_available;
-            }
 
         public function log($content)
         {
