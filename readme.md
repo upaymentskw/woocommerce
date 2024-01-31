@@ -3,7 +3,7 @@ Contributors: UPayments
 Tags: UPayments payments, woocommerce, payment gateway, UPayments, pay with UPayments, credit card, knet, samsung pay, Apple Pay, Google Pay
 Requires at least: 4.0
 Tested up to: 6.3.1
-Stable tag: 2.1.1
+Stable tag: 2.1.2
 PHP requires  at least: 5.5
 PHP tested up to: 8.2.9
 WC requires at least: 2.4
@@ -116,3 +116,5 @@ Supported currency codes are: KWD, SAR, USD, BHD, EUR, OMR, QAR, AED
 - Payment failed for suspected fraud issue is resolved for latest woocommerce version 
 - Customer unique token validation accept with 0.
 
+= 2.1.2 =
+- Payment Confirmation Mail - Product name issue fixed.

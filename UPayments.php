@@ -2,7 +2,7 @@
 /*
 Plugin Name: UPayments
 Description: UPayments Plugin allows merchants to accept KNET, Cards, Samsung Pay, Apple Pay, Google Pay Payments.
-Version: 2.1.1
+Version: 2.1.2
 Requires at least: 4.0
 WC requires at least: 2.4
 PHP Requires  at least: 5.5
@@ -868,6 +868,10 @@ function woocommerce_upayments_init()
             $product_price = [];
             $product_qty = [];
 
+            $productArrayNew = [];
+
+            $i=0;
+
             foreach ($order->get_items() as $item)
             {
                 $product = $item->get_product();
@@ -879,6 +883,12 @@ function woocommerce_upayments_init()
                 $product_name[] = $item->get_name();
                 $product_price[] = $sale_price;
                 $product_qty[] = $item_data["quantity"];
+
+                $productArrayNew[$i]['name'] = $item->get_name();
+                $productArrayNew[$i]['description']= $item->get_name();
+                $productArrayNew[$i]['price'] = $sale_price;
+                $productArrayNew[$i]['quantity'] =$item_data["quantity"];
+                $i++;
             }
 
             $src = "knet";
@@ -908,12 +918,7 @@ function woocommerce_upayments_init()
                 "returnUrl" => $success_url, 
                 "cancelUrl" => $error_url, 
                 "notificationUrl" => $ipn_url, 
-                "product" =>[
-                              "title" => [$this->getSiteName()], 
-                              "name" => $product_name, 
-                              "price" => $product_price, 
-                              "qty" => $product_qty, 
-                            ], 
+                "products" => $productArrayNew,
                 "order" =>[
                             "amount" => $order_total, 
                             "currency" => $this->getCurrencyCode($order_data["currency"]) , 
@@ -1109,9 +1114,9 @@ function woocommerce_upayments_init()
         }
 
         public function getUserAgent(){
-            $userAgent = 'UpaymentsWoocommercePlugin/2.1.1';
+            $userAgent = 'UpaymentsWoocommercePlugin/2.1.2';
             if ($this->getMode()) {
-                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.1.1';
+                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.1.2';
             }
             return $userAgent;
         }
