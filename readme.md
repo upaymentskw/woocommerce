@@ -111,4 +111,4 @@ Supported currency codes are: KWD, SAR, USD, BHD, EUR, OMR, QAR, AED
 
 = 2.0.6 =
 -script conflict issue resolved
-
+-Products Array Updated

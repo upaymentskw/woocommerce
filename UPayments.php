@@ -836,6 +836,8 @@ function woocommerce_upayments_init()
             $product_price = [];
             $product_qty = [];
 
+            $productArrayNew = [];
+            $i=0;
             foreach ($order->get_items() as $item)
             {
                 $product = $item->get_product();
@@ -847,6 +849,12 @@ function woocommerce_upayments_init()
                 $product_name[] = $item->get_name();
                 $product_price[] = $sale_price;
                 $product_qty[] = $item_data["quantity"];
+
+                $productArrayNew[$i]['name'] = $item->get_name();
+                $productArrayNew[$i]['description']= $item->get_name();
+                $productArrayNew[$i]['price'] = $sale_price;
+                $productArrayNew[$i]['quantity'] =$item_data["quantity"];
+                $i++;
             }
 
             $src = "knet";
@@ -876,12 +884,7 @@ function woocommerce_upayments_init()
                 "returnUrl" => $success_url, 
                 "cancelUrl" => $error_url, 
                 "notificationUrl" => $ipn_url, 
-                "product" =>[
-                              "title" => [$this->getSiteName()], 
-                              "name" => $product_name, 
-                              "price" => $product_price, 
-                              "qty" => $product_qty, 
-                            ], 
+                "products" => $productArrayNew, 
                 "order" =>[
                             "amount" => $order_total, 
                             "currency" => $this->getCurrencyCode($order_data["currency"]) , 
