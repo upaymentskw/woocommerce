@@ -2,7 +2,7 @@
 /*
 Plugin Name: UPayments
 Description: UPayments Plugin allows merchants to accept KNET, Cards, Samsung Pay, Apple Pay, Google Pay Payments.
-Version: 2.1.2
+Version: 2.0.7
 Requires at least: 4.0
 WC requires at least: 2.4
 PHP Requires  at least: 5.5
@@ -191,46 +191,10 @@ function woocommerce_upayments_init()
 
         function payment_fields()
         {
-        ?>
-       <div class="form-row form-row-wide">
-        <style>
-            .upay-payment-method {
-                border: 1px solid #D9D9D9;
-                border-radius: 5px;
-                padding: 8px;
-                display: flex;
-                align-items: center;
-                width: 100%;
-                background-color:#fff;
-                margin: 8px 0px;
-            }
+            ?>
+            <div class="form-row form-row-wide">
+            <?php echo $this->description; ?>
 
-            .payment-method-label {
-                margin-left: 5px;
-                color:#98999A !important;
-                text-transform: none;
-                font-weight: normal !important;
-            }
-
-            .payment-method-price {
-                flex: 1 0 0;
-                text-align:right;
-                color:#1B1D21;
-            }
-
-            .payment-method-icon2 {
-                color: #1B1D21;
-                margin-left: 5px;
-            }
-
-            .upay-payment-method:hover {
-                background-color:#fff;
-                border: 1px solid #D9D9D9;
-                box-shadow: 0 4px 3px rgba(0, 0, 0, 0.07), 0 2px 2px rgba(0, 0, 0, 0.06) !important;
-            }
-        </style>
-         <!--p><?php echo $this->description; ?></p--> 
-                
                 <?php if (isset($_REQUEST["cancelled"]))
             { ?>
                 <script>
@@ -261,66 +225,51 @@ function woocommerce_upayments_init()
                 </script>
                 <?php
             } ?>
-                
-           
-            <?php
-           
-            $total = "0";
-            $total = WC()->cart->get_total('');
-            $language=get_locale();
-            $currency = get_woocommerce_currency_symbol();
-            if (strpos($language, 'en') === 0) {
-                $currency = get_woocommerce_currency();
-            }
-            $whitelabled = false;
-            $payment_data = $this->getPaymentIcons();
-            if($payment_data){
-                $this->payment_data = $payment_data;
-                $icons = $payment_data['payment'];
-                $whitelabled = $payment_data['whitelabled'];
-            }
-            if($whitelabled == true){
-            ?>
-                <div class="payment-buttons">
-                
-                <?php
-                foreach ($icons as $key => $value) {
+
+           <?php
+           $icons = null;
+           $whitelabled = false;
+           if($this->payment_data == null ) {
+           $payment_data = $this->getPaymentIcons();
+           } else {
+            $payment_data = $this->payment_data;
+           }
+           if($payment_data){
+           $icons = $payment_data['payment'];
+           $whitelabled = $payment_data['whitelabled'];
+           }
+            if ($whitelabled == true)
+            {
                 ?>
-                    <button type="button" onclick="submitUpayButton('<?php echo esc_attr($key);?>')" class="upay-payment-method" id="upay-button-<?php echo esc_attr($key);?>">
-                    <span class="payment-method-icon"><img src="<?php echo UPayments_PLUGIN_URL;?>assets/images/<?php echo esc_attr($key);?>.png" alt="<?php echo esc_attr($value);?>"  title="<?php echo esc_attr($value);?>"/></span>
-                    <span class="payment-method-label"><?php echo esc_attr($value);?></span>
-                    <span class="payment-method-price"><?php echo $total;?> <?php echo $currency;?></span>
-                    <span class="payment-method-icon2"><i class="fa fa-chevron-right"></i></span>
-                    </button>
-                    
-                <?php
-                }
-                ?>
-            
-                </div>
-            <?php
-            } else {
-                ?>
-                <div class="payment-buttons">
-                <button type="button" onclick="submitUpayButton('knet')" class="upay-payment-method">
-                    
-                <?php
-                foreach ($icons as $key => $value) {
-                ?>
-                    <span class="payment-method-icon" style="margin-right: 5px;" id="upay-button-<?php echo esc_attr($key);?>"><img src="<?php echo UPayments_PLUGIN_URL;?>assets/images/<?php echo esc_attr($key);?>.png" alt="<?php echo esc_attr($value);?>"  title="<?php echo esc_attr($value);?>"/></span>
-                    <?php
-                }
-                ?>
-                <span class="payment-method-price"><?php echo $total;?> <?php echo $currency;?></span>
-                <span class="payment-method-icon2"><i class="fa fa-chevron-right"></i></span>
-                </button>
-                </div>
+                    <ul style="list-style: none outside;">
+                        <p style="display: inline">Select Payment Type:</p>
+                       <?php foreach ($icons as $key => $value)
+                {
+                    if ($key != "both")
+                    {
+                        $icon = ' <img style="height: 13px;" src="' . UPayments_PLUGIN_URL . "assets/images/" . esc_attr($key) . '.png" alt="' . esc_attr($value) . '"  title="' . esc_attr($value) . '" />'; ?>
+                            <li>
+                                <span class="<?php echo esc_attr($key);?>-upayments-button">
+                                <input id="upayment_payment_type_<?php echo esc_attr($key); ?>" type="radio" class="input-radio"
+                                       name="upayment_payment_type" value="<?php echo esc_attr($key); ?>"/>
+                                <label for="upayment_payment_type_<?php echo esc_attr($key); ?>"
+                                       style='display: inline-block; font-family: -apple-system,blinkmacsystemfont,"Helvetica Neue",helvetica,sans-serif;'>
+                                    <span class="upayment_payment_type_label_text"><?php echo esc_attr($value); ?></span>
+                                    <span class="upayment_payment_type_label_logo"><?php echo $icon; ?></span>
+                                </label>
+                                </span>
+
+                        <?php
+                    }
+                } ?>
+                </ul>
             <?php
             }
             ?>
-            <input id="upayment_payment_type" type="hidden" name="upayment_payment_type" value="upayments"/>
+
             </div>
-        <?php   
+
+            <?php
         }
 
         public function add_order_item_totals($total_rows, $order, $tax_display)
@@ -1114,9 +1063,9 @@ function woocommerce_upayments_init()
         }
 
         public function getUserAgent(){
-            $userAgent = 'UpaymentsWoocommercePlugin/2.1.2';
+            $userAgent = 'UpaymentsWoocommercePlugin/2.0.7';
             if ($this->getMode()) {
-                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.1.2';
+                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.0.7';
             }
             return $userAgent;
         }
