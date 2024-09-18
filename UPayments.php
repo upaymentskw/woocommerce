@@ -2,7 +2,7 @@
 /*
 Plugin Name: UPayments
 Description: UPayments Plugin allows merchants to accept KNET, Cards, Samsung Pay, Apple Pay, Google Pay Payments.
-Version: 2.1.2
+Version: 2.1.3
 Requires at least: 4.0
 WC requires at least: 2.4
 PHP Requires  at least: 5.5
@@ -284,19 +284,35 @@ function woocommerce_upayments_init()
                 <div class="payment-buttons">
                 
                 <?php
+                $ccExist = false;
                 foreach ($icons as $key => $value) {
-                ?>
-                    <button type="button" onclick="submitUpayButton('<?php echo esc_attr($key);?>')" class="upay-payment-method" id="upay-button-<?php echo esc_attr($key);?>">
-                    <span class="payment-method-icon"><img src="<?php echo UPayments_PLUGIN_URL;?>assets/images/<?php echo esc_attr($key);?>.png" alt="<?php echo esc_attr($value);?>"  title="<?php echo esc_attr($value);?>"/></span>
-                    <span class="payment-method-label"><?php echo esc_attr($value);?></span>
+                    if($key == 'cc') {
+                        $ccExist = true;
+                    }
+                    ?>
+                        <button type="button" onclick="submitUpayButton('<?php echo esc_attr($key);?>')" class="upay-payment-method" id="upay-button-<?php echo esc_attr($key);?>">
+                        <span class="payment-method-icon"> <img src="<?php echo UPayments_PLUGIN_URL;?>assets/images/<?php echo esc_attr($key);?>.png" alt="<?php echo esc_attr($value);?>"  title="<?php echo esc_attr($value);?>"/>
+                        </span>
+                        <span class="payment-method-label"><?php echo esc_attr($value);?></span>
+                        <span class="payment-method-price"><?php echo $total;?> <?php echo $currency;?></span>
+                        <span class="payment-method-icon2"><i class="fa fa-chevron-right"></i></span>
+                        </button>
+                    <?php
+                }
+
+                if($ccExist == true) {
+                    ?>
+                    <button type="button" onclick="submitUpayButton('cc')" class="upay-payment-method" id="upay-button-cc">
+                    <span class="payment-method-icon"> <img src="<?php echo UPayments_PLUGIN_URL;?>assets/images/gcc.svg" alt="gcc"  title=""/>
+                    </span>
+                    <span class="payment-method-label"></span>
                     <span class="payment-method-price"><?php echo $total;?> <?php echo $currency;?></span>
                     <span class="payment-method-icon2"><i class="fa fa-chevron-right"></i></span>
                     </button>
-                    
-                <?php
+                    <?php
                 }
                 ?>
-            
+
                 </div>
             <?php
             } else {
@@ -306,11 +322,18 @@ function woocommerce_upayments_init()
                     
                 <?php
                 foreach ($icons as $key => $value) {
-                ?>
-                    <span class="payment-method-icon" style="margin-right: 5px;" id="upay-button-<?php echo esc_attr($key);?>"><img src="<?php echo UPayments_PLUGIN_URL;?>assets/images/<?php echo esc_attr($key);?>.png" alt="<?php echo esc_attr($value);?>"  title="<?php echo esc_attr($value);?>"/></span>
-                    <?php
+                    if($key == 'cc') {
+                        ?>
+                            <span class="payment-method-icon" style="margin-right: 5px;" id="upay-button-<?php echo esc_attr('cc');?>"><img src="<?php echo UPayments_PLUGIN_URL;?>assets/images/ccgcc.svg" alt="<?php echo esc_attr('Credit Card');?>"  title="<?php echo esc_attr('Credit Card');?>"/></span>
+                        <?php
+                    } else {
+                        ?>
+                            <span class="payment-method-icon" style="margin-right: 5px;" id="upay-button-<?php echo esc_attr($key);?>"><img src="<?php echo UPayments_PLUGIN_URL;?>assets/images/<?php echo esc_attr($key);?>.png" alt="<?php echo esc_attr($value);?>"  title="<?php echo esc_attr($value);?>"/></span>
+                        <?php
+                    }
                 }
                 ?>
+
                 <span class="payment-method-price"><?php echo $total;?> <?php echo $currency;?></span>
                 <span class="payment-method-icon2"><i class="fa fa-chevron-right"></i></span>
                 </button>
@@ -1114,9 +1137,9 @@ function woocommerce_upayments_init()
         }
 
         public function getUserAgent(){
-            $userAgent = 'UpaymentsWoocommercePlugin/2.1.2';
+            $userAgent = 'UpaymentsWoocommercePlugin/2.1.3';
             if ($this->getMode()) {
-                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.1.2';
+                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.1.3';
             }
             return $userAgent;
         }
