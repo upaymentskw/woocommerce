@@ -113,8 +113,14 @@ Supported currency codes are: KWD, SAR, USD, BHD, EUR, OMR, QAR, AED
 - Design updates
 
 = 2.1.1 =
-- Payment failed for suspected fraud issue is resolved for latest woocommerce version 
+- Payment failed for suspected fraud issue is resolved for latest woocommerce version
 - Customer unique token validation accept with 0.
 
 = 2.1.2 =
 - Payment Confirmation Mail - Product name issue fixed.
+
+= 2.1.3 =
+- GCC Option Updated.
+
+= 2.1.4 =
+- Order Status Issue Fixed.

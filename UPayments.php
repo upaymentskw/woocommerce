@@ -2,11 +2,11 @@
 /*
 Plugin Name: UPayments
 Description: UPayments Plugin allows merchants to accept KNET, Cards, Samsung Pay, Apple Pay, Google Pay Payments.
-Version: 2.1.2
+Version: 2.1.4
 Requires at least: 4.0
 WC requires at least: 2.4
 PHP Requires  at least: 5.5
-Author: <a href="https://upayments.com/>UPayments Company</a>   
+Author: <a href="https://upayments.com/>UPayments Company</a>
 Author URI: https://upayments.com/
 License: MIT
 */
@@ -14,7 +14,7 @@ License: MIT
 if (!defined("ABSPATH"))
 {
     exit(); // Exit if accessed directly
-    
+
 }
 
 define("UPayments_PLUGIN_URL", plugin_dir_url(__FILE__));
@@ -54,7 +54,7 @@ function woocommerce_upayments_init()
             $this->test_mode = $this->get_option("test_mode");
             $this->from_plugin_enabled = false;
             $this->payment_data = null;
-            
+
             // Load the settings.
             $this->init_form_fields();
             $this->init_settings();
@@ -69,7 +69,7 @@ function woocommerce_upayments_init()
             add_action("admin_footer", [$this, "UPayments_admin_footer"], 10, 3);
             add_action('wp_enqueue_scripts', array($this,'enqueue_my_plugin_styles'));
             add_action('wp_enqueue_scripts', array($this, 'enqueue_custom_checkout_script'));
-        
+
         }
         function enqueue_my_plugin_styles() {
            // Enqueue Google Fonts
@@ -113,7 +113,7 @@ function woocommerce_upayments_init()
                                     </span>
                                 </td>
                             </tr>
-                            
+
                         </tbody>
                     </table>
             <?php
@@ -138,7 +138,7 @@ function woocommerce_upayments_init()
                 $icon = '<span>Pay securely with <img src="' . UPayments_PLUGIN_URL . 'assets/images/upayment.png" alt="UPayemnts"  title="UPayments" style="height: 24px !important; padding-left:4px;"/></span>';
             }
             return $icon;
-           
+
         }
 
         /**
@@ -149,19 +149,19 @@ function woocommerce_upayments_init()
             $countries_obj = new WC_Countries();
             $countries = $countries_obj->__get("countries");
 
-            $field_arr = ["enabled" => ["title" => __("Active", $this->domain) , "type" => "checkbox", "label" => __(" ", $this->domain) , "default" => "yes", ], 
-            "title" => ["title" => __("Title", $this->domain) , "type" => "text", "description" => __("This controls the title which the user sees during checkout.", $this->domain) , "default" => $this->method_title, "desc_tip" => true, ], 
+            $field_arr = ["enabled" => ["title" => __("Active", $this->domain) , "type" => "checkbox", "label" => __(" ", $this->domain) , "default" => "yes", ],
+            "title" => ["title" => __("Title", $this->domain) , "type" => "text", "description" => __("This controls the title which the user sees during checkout.", $this->domain) , "default" => $this->method_title, "desc_tip" => true, ],
             "description" => ["title" => __("Description", $this->domain) , "type" => "textarea", "description" => __("Instructions that the customer will see on your checkout.", $this->domain) , "default" => $this->method_description, "desc_tip" => true, ],
-            "api_key" => ["title" => __("Api Key", $this->domain) , "type" => "text", "description" => __("Copy/paste values from UPayments dashboard", $this->domain) , "default" => "", "desc_tip" => true, ], 
-            "debug" => ["title" => __("Debug", $this->domain) , "type" => "checkbox", "label" => __(" ", $this->domain) , "default" => "no", ], 
-            "test_mode" => ["title" => __("Test Mode", $this->domain) , "type" => "checkbox", "label" => __(" ", $this->domain) , "default" => "no", ], 
-            'is_order_complete' => array(   
-                'title' => __('Show paid orders as "Completed"?', $this->domain),   
-                'type' => 'checkbox',   
-                'label' => __(' ', $this->domain),  
-                'default' => 'yes'  
+            "api_key" => ["title" => __("Api Key", $this->domain) , "type" => "text", "description" => __("Copy/paste values from UPayments dashboard", $this->domain) , "default" => "", "desc_tip" => true, ],
+            "debug" => ["title" => __("Debug", $this->domain) , "type" => "checkbox", "label" => __(" ", $this->domain) , "default" => "no", ],
+            "test_mode" => ["title" => __("Test Mode", $this->domain) , "type" => "checkbox", "label" => __(" ", $this->domain) , "default" => "no", ],
+            'is_order_complete' => array(
+                'title' => __('Show paid orders as "Completed"?', $this->domain),
+                'type' => 'checkbox',
+                'label' => __(' ', $this->domain),
+                'default' => 'yes'
             ),];
-            
+
 
             $this->form_fields = $field_arr;
         }
@@ -229,8 +229,8 @@ function woocommerce_upayments_init()
                 box-shadow: 0 4px 3px rgba(0, 0, 0, 0.07), 0 2px 2px rgba(0, 0, 0, 0.06) !important;
             }
         </style>
-         <!--p><?php echo $this->description; ?></p--> 
-                
+         <!--p><?php echo $this->description; ?></p-->
+
                 <?php if (isset($_REQUEST["cancelled"]))
             { ?>
                 <script>
@@ -261,10 +261,10 @@ function woocommerce_upayments_init()
                 </script>
                 <?php
             } ?>
-                
-           
+
+
             <?php
-           
+
             $total = "0";
             $total = WC()->cart->get_total('');
             $language=get_locale();
@@ -282,7 +282,7 @@ function woocommerce_upayments_init()
             if($whitelabled == true){
             ?>
                 <div class="payment-buttons">
-                
+
                 <?php
                 foreach ($icons as $key => $value) {
                 ?>
@@ -292,18 +292,18 @@ function woocommerce_upayments_init()
                     <span class="payment-method-price"><?php echo $total;?> <?php echo $currency;?></span>
                     <span class="payment-method-icon2"><i class="fa fa-chevron-right"></i></span>
                     </button>
-                    
+
                 <?php
                 }
                 ?>
-            
+
                 </div>
             <?php
             } else {
                 ?>
                 <div class="payment-buttons">
                 <button type="button" onclick="submitUpayButton('knet')" class="upay-payment-method">
-                    
+
                 <?php
                 foreach ($icons as $key => $value) {
                 ?>
@@ -320,7 +320,7 @@ function woocommerce_upayments_init()
             ?>
             <input id="upayment_payment_type" type="hidden" name="upayment_payment_type" value="upayments"/>
             </div>
-        <?php   
+        <?php
         }
 
         public function add_order_item_totals($total_rows, $order, $tax_display)
@@ -395,19 +395,19 @@ function woocommerce_upayments_init()
                 let is_status_received = false;
                 let upayments_status_ajax_url = '<?php echo site_url() . "/?wc-api=wc_upayments&get_order_status=1"; ?>';
                 jQuery(document).ready(function(){
-                    
+
                     jQuery(jQuery('.upayment-status-holder').html()).insertAfter('.woocommerce-order-overview__payment-method');
                     jQuery(jQuery('.upayment-id-holder').html()).insertAfter('.woocommerce-order-overview__payment-status');
-                    
+
                     jQuery('.entry-header .entry-title').html('<?php echo __("Order Status", $this->domain); ?>');
                     jQuery('.woocommerce-thankyou-order-received').hide();
                     jQuery('.woocommerce-thankyou-order-details').hide();
                     jQuery('.woocommerce-order-details').hide();
                     jQuery('.woocommerce-customer-details').hide();
-                    
+
                     show_upayments_status();
                 });
-                
+
                 function show_upayments_status(type='') {
                     jQuery('.payment-panel-wait').hide();
                     <?php if ($status == "completed" || $status == "pending")
@@ -436,7 +436,7 @@ function woocommerce_upayments_init()
             <script>
                 jQuery(document).ready(function(){
                     check_upayments_payment_status();
-   
+
                     function check_upayments_payment_status() {
 
                          function upayments_status_loop() {
@@ -505,14 +505,14 @@ function woocommerce_upayments_init()
                 echo __("Your order is cancelled.", $this->domain);
             } ?>
                 </div>
-            </div>  
-            
+            </div>
+
             <div class="payment-panel-error" style="display: none">
                 <div class="message-holder">
                     <?php echo __("Something went wrong, please contact the merchant.", $this->domain); ?>
                 </div>
             </div>
-            
+
             <div class="upayment-status-holder" style="display: none">
                 <li class="woocommerce-order-overview__payment-status status">
                     <?php esc_html_e("Payment Status:", "woocommerce"); ?>
@@ -667,6 +667,16 @@ function woocommerce_upayments_init()
                     elseif ($status == "CAPTURED" || $status == "SUCCESS")
                     {
                         $this->log("Ret Order CAPTURED Status");
+
+                        $paid_order_status = 'processing';
+                        if ($this->getIsOrderComplete()) {
+                            $paid_order_status = 'completed';
+                        }
+
+                        global $woocommerce;
+
+                        $order->update_status($paid_order_status, __('Payment successful with UPayments. PaymentID: '.$PaymentID, $this->domain));
+                        $woocommerce->cart->empty_cart();
                         wp_redirect(add_query_arg("status", $status, $this->get_return_url($order)));
                         exit();
                     }
@@ -773,11 +783,11 @@ function woocommerce_upayments_init()
                             $order->save_meta_data();
                             $this->log("Order status CAPTURED");
 
-                            $paid_order_status = 'processing';  
-                            if ($this->getIsOrderComplete()) {      
-                                $paid_order_status = 'completed';   
-                            }   
-                                
+                            $paid_order_status = 'processing';
+                            if ($this->getIsOrderComplete()) {
+                                $paid_order_status = 'completed';
+                            }
+
                             $order->update_status($paid_order_status, __('Payment successful with UPayments. PaymentID: '.$PaymentID, $this->domain));
                             $woocommerce->cart->empty_cart();
                             exit();
@@ -913,48 +923,48 @@ function woocommerce_upayments_init()
                 $customer_unq_token = '1' . substr($customer_unq_token, 1);
             }
             $customer_unq_token = $this->getCustomerUniqueToken($customer_unq_token);
-            
+
             $params = json_encode([
-                "returnUrl" => $success_url, 
-                "cancelUrl" => $error_url, 
-                "notificationUrl" => $ipn_url, 
+                "returnUrl" => $success_url,
+                "cancelUrl" => $error_url,
+                "notificationUrl" => $ipn_url,
                 "products" => $productArrayNew,
                 "order" =>[
-                            "amount" => $order_total, 
-                            "currency" => $this->getCurrencyCode($order_data["currency"]) , 
-                            "id" => $unique_order_id, 
-                          ], 
+                            "amount" => $order_total,
+                            "currency" => $this->getCurrencyCode($order_data["currency"]) ,
+                            "id" => $unique_order_id,
+                          ],
                 "reference" => [
-                            "id" => "".$order_id, 
-                            ], 
+                            "id" => "".$order_id,
+                            ],
                 "customer" => [
-                            "uniqueId" => $customer_unq_token, 
-                            "name" => $order_data["billing"]["first_name"] . " " . $order_data["billing"]["last_name"], 
-                            "email" => $order_data["billing"]["email"], 
-                            "mobile" => $phone, 
-                            ], 
+                            "uniqueId" => $customer_unq_token,
+                            "name" => $order_data["billing"]["first_name"] . " " . $order_data["billing"]["last_name"],
+                            "email" => $order_data["billing"]["email"],
+                            "mobile" => $phone,
+                            ],
                 "plugin" => [
-                            "src" => "woocommerce", 
-                            ], 
-                "is_whitelabled" => $whitelabled, 
-                "language" => "en", 
-                "isSaveCard" => $isSaveCard, 
-                "paymentGateway" => ["src" => $src,], 
+                            "src" => "woocommerce",
+                            ],
+                "is_whitelabled" => $whitelabled,
+                "language" => "en",
+                "isSaveCard" => $isSaveCard,
+                "paymentGateway" => ["src" => $src,],
                 "tokens" => [
-                            "creditCard" => $credit_card_token, 
-                            "customerUniqueToken" => $customer_unq_token, 
-                            ], 
+                            "creditCard" => $credit_card_token,
+                            "customerUniqueToken" => $customer_unq_token,
+                            ],
                 "device" => [
-                            "browser" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 OPR/93.0.0.0", 
+                            "browser" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 OPR/93.0.0.0",
                             "browserDetails" => [
-                                            "screenWidth" => "1920", 
-                                            "screenHeight" => "1080", 
-                                            "colorDepth" => "24", 
-                                            "javaEnabled" => "false", 
-                                            "language" => "en", 
+                                            "screenWidth" => "1920",
+                                            "screenHeight" => "1080",
+                                            "colorDepth" => "24",
+                                            "javaEnabled" => "false",
+                                            "language" => "en",
                                             "timeZone" => "-180",
-                                            "3DSecureChallengeWindowSize" => "500_X_600", ], 
-                            ], 
+                                            "3DSecureChallengeWindowSize" => "500_X_600", ],
+                            ],
                 ]);
 
             $this->log(__("Create Payment Request:", $this->domain));
@@ -976,7 +986,7 @@ function woocommerce_upayments_init()
 
             $response = curl_exec($ch);
             curl_close($ch);
-            
+
 
             try
             {
@@ -1071,12 +1081,12 @@ function woocommerce_upayments_init()
             return __("Woocommerce", $this->domain);
         }
 
-        public function getIsOrderComplete() {  
-            $flag = true;   
-            if ($this->is_order_complete == 'no') { 
-                $flag = false;  
-            }   
-            return $flag;   
+        public function getIsOrderComplete() {
+            $flag = true;
+            if ($this->is_order_complete == 'no') {
+                $flag = false;
+            }
+            return $flag;
         }
 
         public function getMode() {
@@ -1086,7 +1096,7 @@ function woocommerce_upayments_init()
             }
             return $mode;
         }
-        
+
         public function getAPIUrl()
         {
             $url = "https://apiv2api.upayments.com/api/v1/charge";
@@ -1114,13 +1124,13 @@ function woocommerce_upayments_init()
         }
 
         public function getUserAgent(){
-            $userAgent = 'UpaymentsWoocommercePlugin/2.1.2';
+            $userAgent = 'UpaymentsWoocommercePlugin/2.1.4';
             if ($this->getMode()) {
-                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.1.2';
+                $userAgent = 'SandboxUpaymentsWoocommercePlugin/2.1.4';
             }
             return $userAgent;
         }
-        
+
         public function getCurrencyCode($code)
         {
             $currency = $code;
@@ -1242,7 +1252,7 @@ function woocommerce_upayments_init()
             $methods['whitelabled'] = $whitelabled;
             return $methods;
             }
-            
+
         }
 
         public function log($content)
