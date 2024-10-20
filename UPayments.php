@@ -616,6 +616,16 @@ function woocommerce_upayments_init()
                     elseif ($status == "CAPTURED" || $status == "SUCCESS")
                     {
                         $this->log("Ret Order CAPTURED Status");
+
+                        $paid_order_status = 'processing';
+                        if ($this->getIsOrderComplete()) {
+                            $paid_order_status = 'completed';
+                        }
+
+                        global $woocommerce;
+
+                        $order->update_status($paid_order_status, __('Payment successful with UPayments. PaymentID: '.$PaymentID, $this->domain));
+                        $woocommerce->cart->empty_cart();
                         wp_redirect(add_query_arg("status", $status, $this->get_return_url($order)));
                         exit();
                     }
